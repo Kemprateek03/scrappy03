@@ -1,0 +1,206 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ profile_user.get_full_name|default:profile_user.username }} — scrappy{% endblock %}
+{% block content %}
+<div class="page-container wide">
+    <aside class="sidebar">
+        <div class="sidebar-card">
+            <div class="sidebar-title">About</div>
+            <div style="padding:10px 12px;font-size:13px;">
+                {% if profile.location %}<div>📍 {{ profile.location }}</div>{% endif %}
+                {% if profile.relationship_status %}<div>❤️ {{ profile.get_relationship_status_display }}</div>{% endif %}
+                {% if profile.website %}<div>🔗 <a href="{{ profile.website }}" target="_blank">Website</a></div>{% endif %}
+                {% if profile.birthday %}<div>🎂 {{ profile.birthday|date:"M d, Y" }}</div>{% endif %}
+            </div>
+        </div>
+        {% if profile.interests %}
+        <div class="sidebar-card">
+            <div class="sidebar-title">Interests</div>
+            <div style="padding:10px 12px;font-size:13px;">
+                {% for interest in profile.interests.split %}
+                <span style="display:inline-block;background:#eef4fa;border:1px solid #b8cfe0;border-radius:12px;padding:2px 8px;margin:2px;font-size:12px;">{{ interest }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        <div class="sidebar-card">
+            <div class="sidebar-title">Friends ({{ friends|length }})</div>
+            <div style="padding:10px;">
+                <div class="friends-grid">
+                    {% for friend in friends|slice:":9" %}
+                    <div class="friend-thumb">
+                        <a href="{% url 'profile' friend.username %}">
+                            <div class="avatar">
+                                {% if friend.profile.avatar %}<img src="{{ friend.profile.avatar.url }}">{% else %}👤{% endif %}
+                            </div>
+                            {{ friend.first_name|default:friend.username|truncatechars:8 }}
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if friends|length > 9 %}
+                <a href="{% url 'friends_list' profile_user.username %}" style="font-size:12px;">See all friends →</a>
+                {% endif %}
+            </div>
+        </div>
+    </aside>
+
+    <main style="grid-column:2 / span 2;">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-avatar">
+                {% if profile.avatar %}<img src="{{ profile.avatar.url }}">{% else %}👤{% endif %}
+            </div>
+            <div class="profile-info" style="flex:1;">
+                <h1>{{ profile_user.get_full_name|default:profile_user.username }}</h1>
+                <div class="meta">@{{ profile_user.username }} &middot; Member since {{ profile_user.date_joined|date:"M Y" }}</div>
+                <div class="profile-stats">
+                    <div class="stat"><strong>{{ friends|length }}</strong><br>friends</div>
+                    <div class="stat"><strong>{{ scraps|length }}</strong><br>scraps</div>
+                    <div class="stat"><strong>{{ testimonials|length }}</strong><br>testimonials</div>
+                </div>
+                {% if profile.bio %}<p style="margin-top:8px;font-size:14px;color:#444;">{{ profile.bio }}</p>{% endif %}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+                {% if user == profile_user %}
+                    <a href="{% url 'edit_profile' username=user.username %}" class="btn btn-outline btn-sm">✏️ Edit Profile</a>
+                    <a href="{% url 'create_album' %}" class="btn btn-outline btn-sm">📷 Add Album</a>
+                {% else %}
+                    {% if friendship_status == 'none' %}
+                        <a href="{% url 'send_friend_request' profile_user.username %}" class="btn btn-primary btn-sm">+ Add Friend</a>
+                    {% elif friendship_status == 'pending' %}
+                        <span class="btn btn-outline btn-sm" style="cursor:default;">Request Sent</span>
+                    {% elif friendship_status == 'received' %}
+                        <span style="font-size:13px;color:#888;">Wants to be your friend</span>
+                    {% elif friendship_status == 'accepted' %}
+                        <span class="btn btn-outline btn-sm" style="cursor:default;">✅ Friends</span>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('scraps', this)">Scraps</div>
+            <div class="tab" onclick="showTab('testimonials', this)">Testimonials</div>
+            <div class="tab" onclick="showTab('photos', this)">Photos</div>
+        </div>
+
+        <!-- Scraps -->
+        <div id="tab-scraps">
+            {% if user != profile_user %}
+            <div class="card">
+                <div class="card-header">✉️ Leave a Scrap</div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'post_scrap' profile_user.username %}">
+                        {% csrf_token %}
+                        <textarea name="content" class="form-control" rows="3" placeholder="Write something on {{ profile_user.first_name|default:profile_user.username }}'s scrapbook..."></textarea>
+                        <button type="submit" class="btn btn-primary" style="margin-top:8px;">Post Scrap</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+            <div class="card">
+                <div class="card-header">📖 Scrapbook</div>
+                <div class="card-body">
+                    {% for scrap in scraps %}
+                    <div class="scrap">
+                        <div class="scrap-author">
+                            <a href="{% url 'profile' scrap.author.username %}">{{ scrap.author.get_full_name|default:scrap.author.username }}</a>
+                        </div>
+                        <div class="scrap-content">{{ scrap.content }}</div>
+                        <div class="scrap-meta">
+                            {{ scrap.created_at|timesince }} ago
+                            {% if user == profile_user or user == scrap.author %}
+                            &middot; <a href="{% url 'delete_scrap' scrap.id %}" style="color:#e74c3c;">delete</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p style="color:#888;font-size:13px;">No scraps yet. Be the first!</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Testimonials -->
+        <div id="tab-testimonials" style="display:none;">
+            {% if user != profile_user %}
+            <div class="card">
+                <div class="card-header">⭐ Write a Testimonial</div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'post_testimonial' profile_user.username %}">
+                        {% csrf_token %}
+                        <textarea name="content" class="form-control" rows="4" placeholder="Write a testimonial for {{ profile_user.first_name|default:profile_user.username }}..."></textarea>
+                        <button type="submit" class="btn btn-primary" style="margin-top:8px;">Submit</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+            {% if user == profile_user %}
+            {% with pending=profile_user.testimonials_received.all %}
+            {% for t in pending %}{% if not t.approved %}
+            <div class="card" style="border-color:var(--accent);">
+                <div class="card-header" style="background:#b85c00;">⏳ Pending Testimonial from {{ t.author.username }}</div>
+                <div class="card-body">
+                    <p>{{ t.content }}</p>
+                    <a href="{% url 'approve_testimonial' t.id %}" class="btn btn-success btn-sm" style="margin-top:8px;">Approve</a>
+                </div>
+            </div>
+            {% endif %}{% endfor %}
+            {% endwith %}
+            {% endif %}
+            <div class="card">
+                <div class="card-header">⭐ Testimonials</div>
+                <div class="card-body">
+                    {% for t in testimonials %}
+                    <div class="scrap">
+                        <div class="scrap-author"><a href="{% url 'profile' t.author.username %}">{{ t.author.get_full_name|default:t.author.username }}</a></div>
+                        <div class="scrap-content">{{ t.content }}</div>
+                        <div class="scrap-meta">{{ t.created_at|date:"M d, Y" }}</div>
+                    </div>
+                    {% empty %}
+                    <p style="color:#888;font-size:13px;">No testimonials yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Photos -->
+        <div id="tab-photos" style="display:none;">
+            {% if user == profile_user %}
+            <a href="{% url 'create_album' %}" class="btn btn-primary btn-sm" style="margin-bottom:10px;display:inline-block;">+ New Album</a>
+            {% endif %}
+            {% for album in albums %}
+            <div class="card">
+                <div class="card-header">
+                    📁 <a href="{% url 'album_detail' album.pk %}" style="color:#aed;">{{ album.name }}</a>
+                    <span style="font-size:12px;font-weight:400;">{{ album.photos.count }} photos</span>
+                </div>
+                <div class="card-body">
+                    <div class="photo-grid">
+                        {% for photo in album.photos.all|slice:":6" %}
+                        <div class="photo-item">
+                            <a href="{% url 'album_detail' album.pk %}">
+                                <img src="{{ photo.image.url }}" alt="{{ photo.caption }}">
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="card"><div class="card-body"><p style="color:#888;font-size:13px;">No albums yet.</p></div></div>
+            {% endfor %}
+        </div>
+    </main>
+</div>
+
+<script>
+function showTab(name, el) {
+    document.querySelectorAll('[id^="tab-"]').forEach(t => t.style.display = 'none');
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + name).style.display = 'block';
+    el.classList.add('active');
+}
+</script>
+{% endblock %}

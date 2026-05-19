@@ -1,0 +1,27 @@
+{% extends 'core/base.html' %}
+{% block title %}Edit Profile — scrappy{% endblock %}
+{% block content %}
+<div class="page-container no-sidebar">
+    <div class="card">
+        <div class="card-header">✏️ Edit Your Profile</div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="form-group">
+                    <label>{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    {% if field.help_text %}<small style="color:#888;">{{ field.help_text }}</small>{% endif %}
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a href="{% url 'profile' user.username %}" class="btn btn-outline" style="margin-left:8px;">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+<style>
+.form-group input, .form-group textarea, .form-group select { width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:5px;font-size:14px;font-family:inherit; }
+</style>
+{% endblock %}

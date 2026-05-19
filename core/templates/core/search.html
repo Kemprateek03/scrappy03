@@ -1,0 +1,32 @@
+{% extends 'core/base.html' %}
+{% block title %}Search — scrappy{% endblock %}
+{% block content %}
+<div class="page-container no-sidebar">
+    <div class="card">
+        <div class="card-header">🔍 Search People</div>
+        <div class="card-body">
+            <form method="get" style="display:flex;gap:8px;margin-bottom:16px;">
+                <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Search by name or username..." style="flex:1;">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+            {% if results %}
+            {% for u in results %}
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #eef;">
+                <div class="profile-avatar" style="width:52px;height:52px;border-radius:50%;font-size:22px;">
+                    {% if u.profile.avatar %}<img src="{{ u.profile.avatar.url }}">{% else %}👤{% endif %}
+                </div>
+                <div style="flex:1;">
+                    <a href="{% url 'profile' u.username %}"><strong>{{ u.get_full_name|default:u.username }}</strong></a>
+                    <div style="font-size:12px;color:#888;">@{{ u.username }} &middot; {{ u.profile.friend_count }} friends</div>
+                    {% if u.profile.location %}<div style="font-size:12px;color:#888;">📍 {{ u.profile.location }}</div>{% endif %}
+                </div>
+                <a href="{% url 'send_friend_request' u.username %}" class="btn btn-primary btn-sm">+ Add Friend</a>
+            </div>
+            {% endfor %}
+            {% elif query %}
+            <p style="color:#888;">No users found for "{{ query }}"</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

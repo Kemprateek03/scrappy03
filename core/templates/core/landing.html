@@ -1,0 +1,12 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="landing-page">
+    <div class="landing-box">
+        <div class="landing-logo">scrappy<span>.</span></div>
+        <div class="landing-tagline">Connect with friends and the world around you.</div>
+        <a href="{% url 'login' %}" class="btn btn-primary" style="width:100%;display:block;padding:12px;font-size:16px;margin-bottom:10px;">Sign In</a>
+        <a href="{% url 'register' %}" class="btn btn-secondary" style="width:100%;display:block;padding:12px;font-size:16px;">Create an Account</a>
+        <p style="margin-top:20px;font-size:12px;color:#888;">A nostalgic recreation of the classic social network — built with Django</p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'core/base.html' %}
+{% block title %}Albums — scrappy{% endblock %}
+{% block content %}
+<div class="page-container no-sidebar">
+    <div class="card">
+        <div class="card-header">
+            📷 {{ profile_user.get_full_name|default:profile_user.username }}'s Albums
+            {% if user == profile_user %}
+            <a href="{% url 'create_album' %}">+ New Album</a>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;">
+                {% for album in albums %}
+                <a href="{% url 'album_detail' album.pk %}" style="text-decoration:none;color:inherit;">
+                    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+                        <div style="height:120px;background:var(--sidebar);display:flex;align-items:center;justify-content:center;font-size:40px;">
+                            {% with cover=album.cover_photo %}
+                            {% if cover %}<img src="{{ cover.image.url }}" style="width:100%;height:100%;object-fit:cover;">{% else %}📁{% endif %}
+                            {% endwith %}
+                        </div>
+                        <div style="padding:8px;">
+                            <div style="font-weight:700;font-size:13px;">{{ album.name }}</div>
+                            <div style="font-size:11px;color:#888;">{{ album.photos.count }} photos</div>
+                        </div>
+                    </div>
+                </a>
+                {% empty %}
+                <p style="color:#888;grid-column:1/-1;">No albums yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

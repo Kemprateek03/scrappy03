@@ -1,0 +1,24 @@
+{% extends 'core/base.html' %}
+{% block title %}Friends — scrappy{% endblock %}
+{% block content %}
+<div class="page-container no-sidebar">
+    <div class="card">
+        <div class="card-header">👥 {{ profile_user.get_full_name|default:profile_user.username }}'s Friends ({{ friends|length }})</div>
+        <div class="card-body">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;">
+                {% for friend in friends %}
+                <a href="{% url 'profile' friend.username %}" style="text-decoration:none;color:inherit;text-align:center;">
+                    <div class="profile-avatar" style="width:64px;height:64px;margin:0 auto 6px;border-radius:50%;font-size:26px;">
+                        {% if friend.profile.avatar %}<img src="{{ friend.profile.avatar.url }}">{% else %}👤{% endif %}
+                    </div>
+                    <div style="font-weight:600;font-size:13px;">{{ friend.get_full_name|default:friend.username }}</div>
+                    <div style="font-size:11px;color:#888;">{{ friend.profile.friend_count }} friends</div>
+                </a>
+                {% empty %}
+                <p style="color:#888;grid-column:1/-1;">No friends yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

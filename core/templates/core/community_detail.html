@@ -1,0 +1,71 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ community.name }} — scrappy{% endblock %}
+{% block content %}
+<div class="page-container">
+    <aside class="sidebar">
+        <div class="sidebar-card">
+            <div style="padding:14px;text-align:center;">
+                <div class="community-icon" style="width:70px;height:70px;margin:0 auto 8px;font-size:32px;">
+                    {% if community.avatar %}<img src="{{ community.avatar.url }}">{% else %}🏘️{% endif %}
+                </div>
+                <strong>{{ community.name }}</strong>
+                <div style="font-size:12px;color:#888;margin-top:4px;">{{ community.member_count }} members</div>
+                <div style="font-size:12px;color:#888;">{{ community.category }}</div>
+                <div style="margin-top:10px;">
+                    {% if is_member %}
+                    <a href="{% url 'leave_community' community.pk %}" class="btn btn-outline btn-sm">Leave</a>
+                    {% else %}
+                    <a href="{% url 'join_community' community.pk %}" class="btn btn-primary btn-sm">Join</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="sidebar-card">
+            <div class="sidebar-title">About</div>
+            <div style="padding:10px 12px;font-size:13px;">{{ community.description }}</div>
+        </div>
+        <div class="sidebar-card">
+            <div class="sidebar-title">Creator</div>
+            <div style="padding:10px 12px;font-size:13px;">
+                <a href="{% url 'profile' community.creator.username %}">{{ community.creator.get_full_name|default:community.creator.username }}</a>
+            </div>
+        </div>
+    </aside>
+    <main>
+        {% if is_member %}
+        <div class="card">
+            <div class="card-header">📝 New Post</div>
+            <div class="card-body">
+                <form method="post" action="{% url 'post_to_community' community.pk %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <input type="text" name="title" class="form-control" placeholder="Post title..." required>
+                    </div>
+                    <div class="form-group">
+                        <textarea name="content" class="form-control" rows="4" placeholder="What's on your mind?"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Post</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+        <div class="card">
+            <div class="card-header">💬 Forum Posts</div>
+            <div class="card-body">
+                {% for post in posts %}
+                <div style="border-bottom:1px solid #eef;padding:12px 0;">
+                    <div style="font-weight:700;">{{ post.title }}</div>
+                    <div style="font-size:13px;margin:6px 0;">{{ post.content }}</div>
+                    <div style="font-size:11px;color:#888;">
+                        by <a href="{% url 'profile' post.author.username %}">{{ post.author.get_full_name|default:post.author.username }}</a>
+                        &middot; {{ post.created_at|timesince }} ago
+                    </div>
+                </div>
+                {% empty %}
+                <p style="color:#888;font-size:13px;">No posts yet. Join and start a discussion!</p>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

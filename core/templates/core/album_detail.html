@@ -1,0 +1,41 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ album.name }} — scrappy{% endblock %}
+{% block content %}
+<div class="page-container no-sidebar">
+    <div class="card">
+        <div class="card-header">
+            📁 {{ album.name }}
+            <a href="{% url 'album_list' album.owner.username %}">← Back to Albums</a>
+        </div>
+        <div class="card-body">
+            {% if album.description %}<p style="color:#666;margin-bottom:12px;">{{ album.description }}</p>{% endif %}
+            {% if user == album.owner %}
+            <form method="post" enctype="multipart/form-data" action="{% url 'upload_photo' album.pk %}" style="margin-bottom:16px;padding:12px;background:#f5f9fc;border-radius:6px;border:1px dashed var(--border);">
+                {% csrf_token %}
+                <div style="display:flex;gap:8px;align-items:flex-end;">
+                    <div style="flex:1;">
+                        <label style="font-size:12px;font-weight:600;color:#888;">Add Photo</label>
+                        <input type="file" name="image" class="form-control" accept="image/*" required>
+                    </div>
+                    <div style="flex:1;">
+                        <label style="font-size:12px;font-weight:600;color:#888;">Caption</label>
+                        <input type="text" name="caption" class="form-control" placeholder="Optional caption...">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </div>
+            </form>
+            {% endif %}
+            <div class="photo-grid">
+                {% for photo in photos %}
+                <div class="photo-item">
+                    <img src="{{ photo.image.url }}" alt="{{ photo.caption }}" title="{{ photo.caption }}">
+                    {% if photo.caption %}<div style="font-size:11px;color:#888;margin-top:3px;text-align:center;">{{ photo.caption }}</div>{% endif %}
+                </div>
+                {% empty %}
+                <p style="color:#888;grid-column:1/-1;">No photos yet. Upload some!</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

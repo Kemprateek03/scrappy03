@@ -1,0 +1,123 @@
+{% extends 'core/base.html' %}
+{% block title %}Home — scrappy{% endblock %}
+{% block content %}
+<div class="page-container wide">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-card">
+            <div class="sidebar-title">Navigation</div>
+            <ul>
+                <li><a href="{% url 'profile' user.username %}">👤 My Profile</a></li>
+                <li><a href="{% url 'friends_list' username=user.username %}">👥 My Friends</a></li>
+                <li><a href="{% url 'community_list' %}">🏘️ Communities</a></li>
+                <li><a href="{% url 'album_list' username=user.username %}">📷 My Photos</a></li>
+                <li><a href="{% url 'search' %}">🔍 Find People</a></li>
+            </ul>
+        </div>
+        <div class="sidebar-card">
+            <div class="sidebar-title">My Communities</div>
+            <ul>
+                {% for c in communities %}
+                <li><a href="{% url 'community_detail' c.pk %}">{{ c.name }}</a></li>
+                {% empty %}
+                <li style="padding:8px 12px;font-size:12px;color:#888;">No communities yet</li>
+                {% endfor %}
+                <li><a href="{% url 'create_community' %}">+ Create Community</a></li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        <!-- Pending friend requests -->
+        {% if pending_requests %}
+        <div class="card">
+            <div class="card-header">🔔 Friend Requests</div>
+            <div class="card-body">
+                {% for req in pending_requests %}
+                <div style="display:flex;align-items:center;gap:12px;padding:6px 0;border-bottom:1px solid #eef;">
+                    <div class="friend-thumb">
+                        <div class="avatar">
+                            {% if req.sender.profile.avatar %}
+                            <img src="{{ req.sender.profile.avatar.url }}">
+                            {% else %}👤{% endif %}
+                        </div>
+                    </div>
+                    <div style="flex:1;">
+                        <a href="{% url 'profile' req.sender.username %}"><strong>{{ req.sender.get_full_name|default:req.sender.username }}</strong></a>
+                        <div style="font-size:12px;color:#888;">wants to be your friend</div>
+                    </div>
+                    <a href="{% url 'respond_friend_request' req.id 'accept' %}" class="btn btn-success btn-sm">Accept</a>
+                    <a href="{% url 'respond_friend_request' req.id 'reject' %}" class="btn btn-danger btn-sm">Decline</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Recent Scraps -->
+        <div class="card">
+            <div class="card-header">
+                ✉️ Recent Scraps
+                <a href="{% url 'profile' user.username %}">View all</a>
+            </div>
+            <div class="card-body">
+                {% for scrap in recent_scraps %}
+                <div class="scrap">
+                    <div class="scrap-author">
+                        <a href="{% url 'profile' scrap.author.username %}">{{ scrap.author.get_full_name|default:scrap.author.username }}</a>
+                    </div>
+                    <div class="scrap-content">{{ scrap.content }}</div>
+                    <div class="scrap-meta">{{ scrap.created_at|timesince }} ago</div>
+                </div>
+                {% empty %}
+                <p style="color:#888;font-size:13px;">No scraps yet. Visit a friend's profile to leave one!</p>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+
+    <!-- RIGHT SIDEBAR -->
+    <aside>
+        <!-- Profile mini -->
+        <div class="card" style="margin-bottom:12px;">
+            <div class="card-body" style="text-align:center;">
+                <div class="profile-avatar" style="width:70px;height:70px;margin:0 auto 8px;border-radius:50%;">
+                    {% if user.profile.avatar %}
+                    <img src="{{ user.profile.avatar.url }}">
+                    {% else %}👤{% endif %}
+                </div>
+                <div style="font-weight:700;font-size:15px;">{{ user.get_full_name|default:user.username }}</div>
+                <div style="font-size:12px;color:#888;margin-bottom:8px;">{{ user.profile.friends|length }} friends</div>
+                <a href="{% url 'edit_profile' username=user.username %}" class="btn btn-outline btn-sm">Edit Profile</a>
+            </div>
+        </div>
+
+        <!-- Friends -->
+        <div class="card">
+            <div class="card-header">
+                👥 Friends
+                <a href="{% url 'friends_list' username=user.username %}">All</a>
+            </div>
+            <div class="card-body">
+                <div class="friends-grid">
+                    {% for friend in friends %}
+                    <div class="friend-thumb">
+                        <a href="{% url 'profile' friend.username %}">
+                            <div class="avatar">
+                                {% if friend.profile.avatar %}
+                                <img src="{{ friend.profile.avatar.url }}">
+                                {% else %}👤{% endif %}
+                            </div>
+                            {{ friend.first_name|default:friend.username|truncatechars:8 }}
+                        </a>
+                    </div>
+                    {% empty %}
+                    <p style="color:#888;font-size:12px;grid-column:1/-1;">Find people using search!</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </aside>
+</div>
+{% endblock %}

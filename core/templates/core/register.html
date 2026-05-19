@@ -1,0 +1,24 @@
+{% extends 'core/base.html' %}
+{% block title %}Register — scrappy{% endblock %}
+{% block content %}
+<div class="landing-page">
+    <div class="landing-box" style="max-width:500px;">
+        <div class="landing-logo" style="font-size:32px;">Join scrappy<span>.</span></div>
+        <p style="color:#666;margin-bottom:20px;font-size:14px;">Create your free account</p>
+        <form method="post" style="text-align:left;">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label>{{ field.label }}</label>
+                <input type="{{ field.field.widget.input_type }}" name="{{ field.html_name }}"
+                    class="form-control" value="{{ field.value|default:'' }}"
+                    {% if field.field.required %}required{% endif %}>
+                {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary" style="width:100%;padding:10px;font-size:15px;">Create Account</button>
+        </form>
+        <p style="margin-top:14px;font-size:13px;color:#666;">Already have an account? <a href="{% url 'login' %}">Sign in</a></p>
+    </div>
+</div>
+{% endblock %}
